@@ -1,10 +1,7 @@
-# tools
-shell scripts
+# codegen
+This shell script is generate c/c++ source.
 
-codegen.shはc/c++のソースを自動生成することを目的としたシェルスクリプト。
-
-
-#### 使用例
+#### example
 
 
 cのソースを生成。personフォルダにperson.cを作成する
