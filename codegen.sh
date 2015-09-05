@@ -1,7 +1,90 @@
 #!/bin/sh
 
 #
-# create Makefile
+# create c Makefile
+#
+create_c_makefile()
+{
+cat << EOT
+CXX=gcc
+CXXFLAGS= -O0 -Wall -g
+LDFLAGS= 
+TARGET=main
+
+OPT= 
+INC=
+LIB=
+
+SRC=\$(shell ls *.c)
+HEAD=\$(shell ls *.h)
+OBJ=\$(SRC:. c=.o)
+
+all: \$(TARGET)
+
+\$(TARGET): \$(OBJ)
+	\$(CXX) \$(CXXFLAGS) -o \$(TARGET) \$(OBJ) \$(LIB)
+
+clean:
+	\$(RM) \$(TARGET) *.o
+EOT
+}
+
+
+#
+# create c header file
+#
+create_c_h()
+{
+HEADER=`echo $FILE | tr "[a-z]" "[A-Z]"`
+
+cat << EOT
+#ifndef ${HEADER}_H_
+#define ${HEADER}_H_
+/**
+ *
+ */
+int execute();
+#endif // ${HEADER}_H_
+EOT
+}
+
+
+#
+# create c file
+#
+create_c()
+{
+cat << EOT
+#include <stdio.h>
+#include "$FILE.h"
+
+int execute() {
+    return 0;
+}
+EOT
+}
+
+
+#
+# create main
+#
+create_c_main()
+{
+cat << EOT
+#include <stdio.h>
+#include "$FILE.h"
+
+int main(int argc, char **args) {
+    return 0;
+}
+EOT
+}
+
+
+
+
+#
+# create c++ Makefile
 #
 create_makefile()
 {
@@ -82,6 +165,7 @@ EOT
 #
 create_h()
 {
+HEADER=`echo $CLASS | tr "[a-z]" "[A-Z]"`
 cat << EOT
 #ifndef ${HEADER}_H_
 #define ${HEADER}_H_
@@ -126,15 +210,19 @@ EOT
 #
 case "$1" in
     "c")
-        echo "build c project"
+        #echo "build c project"
         TYPE=CLANG
         ;;
     "cpp")
-        echo "build c++ project"
+        #echo "build c++ project"
         TYPE=CPP
         ;;
     *)
-        echo "error"
+        echo ""
+        echo "ERROR!"
+        echo ""
+        echo "please specify codegen.sh c or codegen.sh cpp"
+        echo ""
         exit
         ;;
 esac
@@ -142,12 +230,18 @@ esac
 if [ $TYPE = "CLANG" ]; then
     PROJECT=$2
     if [ $# != 3 ]; then
+        echo ""
         echo "USAGE:"
-        echo "codegen.sh c project file"
+        echo ""
+        echo "\tcodegen.sh c project_name file_name\n"
         exit
     fi
     FILE=$3
-    echo "$PROJECT"
+    mkdir $PROJECT
+    create_c_makefile $PROJECT > $PROJECT/Makefile
+    create_c_h $FILE > $PROJECT/$FILE.h
+    create_c $FILE > $PROJECT/$FILE.c
+    create_c_main $FILE > $PROJECT/main.c
     echo "$FILE"
 else 
     if [ $# -eq 4 ]; then
