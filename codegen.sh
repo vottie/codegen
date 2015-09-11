@@ -248,9 +248,6 @@ else
         PROJECT=$2
         NAMESPACE=$3
         CLASS=$4
-        echo "$PROJECT"
-        echo "$NAMESPACE"
-        echo "$CLASS"
 
         mkdir $PROJECT
         create_makefile $PROJECT > $PROJECT/Makefile
@@ -277,19 +274,21 @@ else
         CLASS=$5
         SONAME=$6
         
-        echo "$PROJECT"
-        echo "$NAMESPACE"
-        echo "$CLASS"
-        echo "$SONAME"
-
         mkdir $PROJECT
         create_lib_makefile $PROJECT > $PROJECT/Makefile
         create_cpp $NAMESPACE > $PROJECT/$CLASS.cpp
         create_h $NAMESPACE $CLASS > $PROJECT/$CLASS.h
         create_main  $NAMESPACE > $PROJECT/main.cpp
     else
+        echo ""
         echo "invalid argument"
-        echo $#
+        echo ""
+        echo "USAGE:"
+        echo ""
+        echo "\tcodegen.sh cpp project_name namespace class_name \n"
+        echo "\tor...\n"
+        echo "\tcodegen.sh cpp lib project_name namespace class_name so_name\n"
+        exit
     fi
 fi
 
