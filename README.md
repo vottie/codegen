@@ -1,26 +1,57 @@
 # codegen
 This shell script is generate c/c++ source.
 
-#### example
+#### Example
 
 
-cのソースを生成。personフォルダにperson.cを作成する
+Generate c code. create action folder, and create action.c in action folder.
 
 
 % ./codegen.sh c person person
 
 
 ---
-c++のソースを生成。personフォルダにnamespace:sampleのPersonクラスを生成。
+Generate c++ code. create action folder, and create sample::Action class
 
 
-% ./codegen.sh cpp person sample Person
+% ./codegen.sh cpp action sample Action
+
+% ls action
+
+Action.cpp  Action.h  main.cpp  Makefile
+
+
+
 
 
 ---
-c++の共有ライブラリを生成。personフォルダにnamespace:sampleのPersonクラスを生成。makeでlibperson.soを作成し、make testでmainを実行する。
+Generate c++ shared library. create action folder, and create sample::Action class.
+
+shared library name is libact.so
+
+% ./codegen.sh cpp lib action sample Action act
+
+% ls action
+
+Action.cpp  Action.h  main.cpp  Makefile
 
 
-% ./codegen.sh cpp lib person sample Person person
+Create shared library.
 
+% make
 
+g++ -O0 -Wall -g -fPIC -shared -o libact.so Action.cpp
+
+% ls
+
+Action.cpp  Action.h  libact.so  main.cpp  Makefile
+
+Compile main process.
+
+% make test
+
+g++ main.cpp -O0 -Wall -g -fPIC -o main -I. -L$YOUR_DIRECTORY/action -lact
+
+% ls
+
+Action.cpp  Action.h  libact.so  main  main.cpp  Makefile
