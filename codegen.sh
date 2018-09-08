@@ -237,11 +237,21 @@ if [ $TYPE = "CLANG" ]; then
         exit
     fi
     FILE=$3
-    mkdir $PROJECT
-    create_c_makefile $PROJECT > $PROJECT/Makefile
-    create_c_h $FILE > $PROJECT/$FILE.h
-    create_c $FILE > $PROJECT/$FILE.c
-    create_c_main $FILE > $PROJECT/main.c
+    if [ ! -e $PROJECT ]; then
+        mkdir $PROJECT
+    fi
+    if [ ! -e $PROJECT/Makefile ]; then
+       create_c_makefile $PROJECT > $PROJECT/Makefile
+    fi
+    if [ ! -e $PROJECT/$FILE.h ]; then
+        create_c_h $FILE > $PROJECT/$FILE.h
+    fi
+    if [ ! -e $PROJECT/$FILE.c ]; then
+        create_c $FILE > $PROJECT/$FILE.c
+    fi
+    if [ ! -e $PROJECT/main.c ]; then
+        create_c_main $FILE > $PROJECT/main.c
+    fi
     echo "$FILE"
 else 
     if [ $# -eq 4 ]; then
@@ -249,11 +259,21 @@ else
         NAMESPACE=$3
         CLASS=$4
 
-        mkdir $PROJECT
-        create_makefile $PROJECT > $PROJECT/Makefile
-        create_cpp $NAMESPACE > $PROJECT/$CLASS.cpp
-        create_h $NAMESPACE $CLASS > $PROJECT/$CLASS.h
-        create_main  $NAMESPACE > $PROJECT/main.cpp
+	if [ ! -e $PROJECT ]; then
+	    mkdir $PROJECT
+	fi
+        if [ ! -e $PROJECT/Makefile ]; then
+            create_makefile $PROJECT > $PROJECT/Makefile
+	fi
+        if [ ! -e $PROJECT/$CLASS ]; then
+            create_cpp $NAMESPACE > $PROJECT/$CLASS.cpp
+	fi
+        if [ ! -e $PROJECT/$CLASS.hpp ]; then
+            create_h $NAMESPACE $CLASS > $PROJECT/$CLASS.hpp
+	fi
+        if [ ! -e $PROJECT/main.cpp ]; then
+            create_main  $NAMESPACE > $PROJECT/main.cpp
+	fi
     elif [ $# -eq 6 ]; then
         case "$2" in
             "test")
@@ -273,12 +293,22 @@ else
         NAMESPACE=$4
         CLASS=$5
         SONAME=$6
-        
-        mkdir $PROJECT
-        create_lib_makefile $PROJECT > $PROJECT/Makefile
-        create_cpp $NAMESPACE > $PROJECT/$CLASS.cpp
-        create_h $NAMESPACE $CLASS > $PROJECT/$CLASS.h
-        create_main  $NAMESPACE > $PROJECT/main.cpp
+        	
+	if [ ! -e $PROJECT ]; then
+	    mkdir $PROJECT
+	fi
+        if [ ! -e $PROJECT/Makefile ]; then
+            create_lib_makefile $PROJECT > $PROJECT/Makefile
+	fi
+        if [ ! -e $PROJECT/$CLASS ]; then
+           create_cpp $NAMESPACE > $PROJECT/$CLASS.cpp
+	fi
+        if [ ! -e $PROJECT/$CLASS.hpp ]; then
+            create_h $NAMESPACE $CLASS > $PROJECT/$CLASS.hpp
+	fi
+        if [ ! -e $PROJECT/main.cpp ]; then
+            create_main  $NAMESPACE > $PROJECT/main.cpp
+	fi
     else
         echo ""
         echo "invalid argument"
