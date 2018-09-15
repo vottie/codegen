@@ -99,7 +99,7 @@ INC=
 LIB=
 
 SRC=\$(shell ls *.cpp)
-HEAD=\$(shell ls *.h)
+HEAD=\$(shell ls *.hpp)
 OBJ=\$(SRC:. cpp=.o)
 
 all: \$(TARGET)
@@ -129,7 +129,7 @@ INC=
 LIB=
 
 SRC=$CLASS.cpp
-HEAD=$CLASS.h
+HEAD=$CLASS.hpp
 OBJ=\$(SRC:. cpp=.o)
 
 all: \$(TARGET)
@@ -152,7 +152,7 @@ create_cpp()
 {
 cat << EOT
 #include <iostream>
-#include "$CLASS.h"
+#include "$CLASS.hpp"
 
 using namespace std;
 using namespace $NAMESPACE;
@@ -194,7 +194,7 @@ create_main()
 {
 cat << EOT
 #include <iostream>
-#include "$CLASS.h"
+#include "$CLASS.hpp"
 
 using namespace std;
 using namespace $NAMESPACE;
