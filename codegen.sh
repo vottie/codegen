@@ -1,6 +1,71 @@
 #!/bin/sh
 
 #
+# create ruby
+#
+create_ruby()
+{
+cat << EOT
+class $KLS
+  def initialze()
+  end
+
+  def execute()
+  end
+end
+EOT
+}
+#
+# create ruby main
+#
+create_ruby_main()
+{
+cat << EOT
+require './$KLS.rb'
+
+def main
+  k = $KLS.new()
+  k.execute()
+end
+
+if __FILE__ == \$0
+  main
+end
+EOT
+}
+#
+# create python
+#
+create_python()
+{
+cat << EOT
+# -*- coding: utf-8 -*-
+
+class $KLS:
+    def __init__(self):
+        pass
+
+    def execute(self):
+        print('')
+EOT
+}
+#
+# create python main
+#
+create_python_main()
+{
+cat << EOT
+# -*- coding: utf-8 -*-
+
+from $KLS import $KLS
+
+if __name__ == '__main__':
+    cls = $KLS() 
+    cls.execute()
+EOT
+}
+
+#
 # create c Makefile
 #
 create_c_makefile()
@@ -217,11 +282,20 @@ case "$1" in
         #echo "build c++ project"
         TYPE=CPP
         ;;
+    "py")
+        TYPE=PYTHON
+        ;;
+    "rb")
+        TYPE=RUBY
+        ;;
+    "go")
+        TYPE=GOLANG
+        ;;
     *)
         echo ""
         echo "ERROR!"
         echo ""
-        echo "please specify codegen.sh c or codegen.sh cpp"
+        echo "please specify codegen.sh c or cpp or py or rb or go"
         echo ""
         exit
         ;;
@@ -253,7 +327,7 @@ if [ $TYPE = "CLANG" ]; then
         create_c_main $FILE > $PROJECT/main.c
     fi
     echo "$FILE"
-else 
+elif [ $TYPE = "CPP" ]; then
     if [ $# -eq 4 ]; then
         PROJECT=$2
         NAMESPACE=$3
@@ -320,5 +394,27 @@ else
         echo "\tcodegen.sh cpp lib project_name namespace class_name so_name\n"
         exit
     fi
+elif [ $TYPE = "PYTHON" ]; then
+    PROJECT=$2
+    KLS=$3
+	if [ ! -e $PROJECT ]; then
+	    mkdir $PROJECT
+	fi
+    create_python > $PROJECT/$KLS.py
+    create_python_main > $PROJECT/main.py
+elif [ $TYPE = "RUBY" ]; then
+    PROJECT=$2
+    KLS=$3
+	if [ ! -e $PROJECT ]; then
+	    mkdir $PROJECT
+	fi
+    # T.B.D
+    # FILE is snake case,
+    # But Class-name is camel case
+    # KLS_SNAKE=${KLS,}
+    create_ruby > $PROJECT/$KLS.rb
+    create_ruby_main > $PROJECT/main.rb
+elif [ $TYPE = "GLANG" ]; then
+    echo ""
 fi
 
