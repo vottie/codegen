@@ -1,6 +1,47 @@
 #!/bin/sh
 
 #
+# create go build.sh
+#
+create_go_build()
+{
+cat << EOT
+go build $PROJECT/$KLS.go
+go mod init $KLS
+go build main.go
+EOT
+}
+#
+# create go
+#
+create_go()
+{
+cat << EOT
+package $PROJECT
+
+import "fmt"
+
+func Execute() {
+    fmt.Printf("Hello World\n")
+}
+EOT
+}
+#
+# create go main
+#
+create_go_main()
+{
+cat << EOT
+package main
+
+import "$PROJECT/$KLS"
+
+func main() {
+  $KLS.Execute()
+}
+EOT
+}
+#
 # create ruby
 #
 create_ruby()
@@ -414,7 +455,26 @@ elif [ $TYPE = "RUBY" ]; then
     # KLS_SNAKE=${KLS,}
     create_ruby > $PROJECT/$KLS.rb
     create_ruby_main > $PROJECT/main.rb
-elif [ $TYPE = "GLANG" ]; then
-    echo ""
+elif [ $TYPE = "GOLANG" ]; then
+    if [ $# -eq 3 ]; then
+        PROJECT=$2
+        KLS=$3
+    else
+        echo ""
+        echo "invalid argument"
+        echo ""
+        echo "USAGE:"
+        echo ""
+        echo "\tcodegen.sh go project_name mod_name \n"
+        exit
+    fi
+	if [ ! -e $PROJECT ]; then
+	    mkdir $PROJECT
+	fi
+    mkdir -p $PROJECT/$KLS
+    create_go > $PROJECT/$KLS/$KLS.go
+    create_go_main > $PROJECT/main.go
+    create_go_build > $PROJECT/build.sh
+
 fi
 
