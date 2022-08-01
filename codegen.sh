@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #
 # create go build.sh
@@ -47,7 +47,7 @@ EOT
 create_ruby()
 {
 cat << EOT
-class $KLS
+class $RB_KLS
   def initialze()
   end
 
@@ -132,6 +132,38 @@ all: \$(TARGET)
 
 clean:
 	\$(RM) \$(TARGET) *.o
+EOT
+}
+#
+# create c Makefile for shared library
+#
+create_c_makefile()
+{
+cat << EOT
+CXX=gcc
+CXXFLAGS= -O0 -Wall -g -fPIC
+LDFLAGS= 
+TARGET=lib$SONAME.so
+TEST_TARGET=main
+
+OPT= 
+INC=
+LIB=
+
+SRC=\$(shell ls *.c)
+HEAD=\$(shell ls *.h)
+OBJ=\$(SRC:. c=.o)
+
+all: \$(TARGET)
+
+\$(TARGET): \$(OBJ)
+	\$(CXX) \$(CXXFLAGS) -shared -o \$(TARGET) \$(OBJ) \$(LIB)
+
+clean:
+	\$(RM) \$(TARGET) *.o
+
+test:
+    \$(CXX) main.c \$(CXXFLAGS) -o \$(TEST_TARGET) -I. -L\$(CURDIR) -l$SONAME
 EOT
 }
 
@@ -334,8 +366,6 @@ case "$1" in
         ;;
     *)
         echo ""
-        echo "ERROR!"
-        echo ""
         echo "please specify codegen.sh c or cpp or py or rb or go"
         echo ""
         exit
@@ -343,31 +373,55 @@ case "$1" in
 esac
 
 if [ $TYPE = "CLANG" ]; then
-    PROJECT=$2
-    if [ $# != 3 ]; then
+    if [ $# -eq 3 ]; then
+        PROJECT=$2
+        FILE=$3
+        if [ ! -e $PROJECT ]; then
+            mkdir $PROJECT
+        fi
+        if [ ! -e $PROJECT/Makefile ]; then
+            create_c_makefile $PROJECT > $PROJECT/Makefile
+        fi
+        if [ ! -e $PROJECT/$FILE.h ]; then
+            create_c_h $FILE > $PROJECT/$FILE.h
+        fi
+        if [ ! -e $PROJECT/$FILE.c ]; then
+            create_c $FILE > $PROJECT/$FILE.c
+        fi
+        if [ ! -e $PROJECT/main.c ]; then
+            create_c_main $FILE > $PROJECT/main.c
+        fi
+        echo "$FILE"
+    elif [ $# -eq 4 ]; then
+        PROJECT=$2
+        FILE=$3
+        SONAME=$4
+        if [ ! -e $PROJECT ]; then
+            mkdir $PROJECT
+        fi
+        if [ ! -e $PROJECT/Makefile ]; then
+            create_c_makefile $PROJECT > $PROJECT/Makefile
+        fi
+        if [ ! -e $PROJECT/$FILE.h ]; then
+            create_c_h $FILE > $PROJECT/$FILE.h
+        fi
+        if [ ! -e $PROJECT/$FILE.c ]; then
+            create_c $FILE > $PROJECT/$FILE.c
+        fi
+        if [ ! -e $PROJECT/main.c ]; then
+            create_c_main $FILE > $PROJECT/main.c
+        fi
+        echo "$FILE"
+    fi
+    if [ $# -gt 5 ]; then
         echo ""
         echo "USAGE:"
         echo ""
         echo "\tcodegen.sh c project_name file_name\n"
+        echo "\tor...\n"
+        echo "\tcodegen.sh c project_name file_name so_name\n"
         exit
     fi
-    FILE=$3
-    if [ ! -e $PROJECT ]; then
-        mkdir $PROJECT
-    fi
-    if [ ! -e $PROJECT/Makefile ]; then
-       create_c_makefile $PROJECT > $PROJECT/Makefile
-    fi
-    if [ ! -e $PROJECT/$FILE.h ]; then
-        create_c_h $FILE > $PROJECT/$FILE.h
-    fi
-    if [ ! -e $PROJECT/$FILE.c ]; then
-        create_c $FILE > $PROJECT/$FILE.c
-    fi
-    if [ ! -e $PROJECT/main.c ]; then
-        create_c_main $FILE > $PROJECT/main.c
-    fi
-    echo "$FILE"
 elif [ $TYPE = "CPP" ]; then
     if [ $# -eq 4 ]; then
         PROJECT=$2
@@ -436,6 +490,15 @@ elif [ $TYPE = "CPP" ]; then
         exit
     fi
 elif [ $TYPE = "PYTHON" ]; then
+    if [ $# -lt 2 ]; then
+        echo ""
+        echo "invalid argument"
+        echo ""
+        echo "USAGE:"
+        echo ""
+        echo "\tcodegen.sh py "project_name" "class name" \n"
+        exit
+    fi
     PROJECT=$2
     KLS=$3
 	if [ ! -e $PROJECT ]; then
@@ -444,16 +507,23 @@ elif [ $TYPE = "PYTHON" ]; then
     create_python > $PROJECT/$KLS.py
     create_python_main > $PROJECT/main.py
 elif [ $TYPE = "RUBY" ]; then
+    if [ $# -lt 2 ]; then
+        echo ""
+        echo "invalid argument"
+        echo ""
+        echo "USAGE:"
+        echo ""
+        echo "\t codegen.sh rb "project_name" "class name" \n"
+        exit
+    fi
     PROJECT=$2
     KLS=$3
+    # Snake to Pascal
+    RB_KLS=`echo $KLS | awk -F '_' '{ for(i=1; i<=NF; i++) {printf toupper(substr($i,1,1)) substr($i,2)} } END {print ""}'`
 	if [ ! -e $PROJECT ]; then
 	    mkdir $PROJECT
 	fi
-    # T.B.D
-    # FILE is snake case,
-    # But Class-name is camel case
-    # KLS_SNAKE=${KLS,}
-    create_ruby > $PROJECT/$KLS.rb
+    create_ruby $RB_KLS > $PROJECT/$KLS.rb
     create_ruby_main > $PROJECT/main.rb
 elif [ $TYPE = "GOLANG" ]; then
     if [ $# -eq 3 ]; then
