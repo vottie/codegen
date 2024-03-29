@@ -167,6 +167,44 @@ test:
 EOT
 }
 
+#
+# create c Makefile for shared library
+# comilpe option for gcov
+#
+create_test_c_makefile()
+{
+cat << EOT
+CXX=gcc
+GCOV=gcov
+CXXFLAGS= -O0 -Wall -g -fPIC -fprofile-arcs -ftest-coverage
+LDFLAGS= 
+TARGET=lib$SONAME.so
+TEST_TARGET=main
+
+OPT=
+INC=
+LIB=
+
+SRC=\$(shell ls *.c)
+HEAD=\$(shell ls *.h)
+OBJ=\$(SRC:. c=.o)
+
+all: \$(TARGET)
+
+\$(TARGET): \$(OBJ)
+	\$(CXX) \$(CXXFLAGS) -shared -o \$(TARGET) \$(OBJ) \$(LIB)
+
+clean:
+	\$(RM) \$(TARGET) *.o
+
+test:
+	\$(CXX) main.c \$(CXXFLAGS) -o \$(TEST_TARGET) -I. -L\$(CURDIR) -l$SONAME
+
+gcov:
+	$(GCOV) *.gcda
+
+EOT
+}
 
 #
 # create c header file
@@ -409,6 +447,31 @@ if [ $TYPE = "CLANG" ]; then
         fi
         if [ ! -e $PROJECT/Makefile ]; then
             create_lib_c_makefile $PROJECT > $PROJECT/Makefile
+        fi
+        if [ ! -e $PROJECT/$FILE.h ]; then
+            create_c_h $FILE > $PROJECT/$FILE.h
+        fi
+        if [ ! -e $PROJECT/$FILE.c ]; then
+            create_c $FILE > $PROJECT/$FILE.c
+        fi
+        if [ ! -e $PROJECT/main.c ]; then
+            create_c_main $FILE > $PROJECT/main.c
+        fi
+        echo "$FILE"
+    elif [ $# -eq 5 ]; then
+        if [ $5 != "test" ]; then
+            printf "\t invalid parameter.\n"
+        else
+            printf "test."
+        fi
+        PROJECT=$2
+        FILE=$3
+        SONAME=$4
+        if [ ! -e $PROJECT ]; then
+            mkdir $PROJECT
+        fi
+        if [ ! -e $PROJECT/Makefile ]; then
+            create_test_c_makefile $PROJECT > $PROJECT/Makefile
         fi
         if [ ! -e $PROJECT/$FILE.h ]; then
             create_c_h $FILE > $PROJECT/$FILE.h
