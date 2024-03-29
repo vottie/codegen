@@ -137,7 +137,7 @@ EOT
 #
 # create c Makefile for shared library
 #
-create_c_makefile()
+create_lib_c_makefile()
 {
 cat << EOT
 CXX=gcc
@@ -163,7 +163,7 @@ clean:
 	\$(RM) \$(TARGET) *.o
 
 test:
-    \$(CXX) main.c \$(CXXFLAGS) -o \$(TEST_TARGET) -I. -L\$(CURDIR) -l$SONAME
+	\$(CXX) main.c \$(CXXFLAGS) -o \$(TEST_TARGET) -I. -L\$(CURDIR) -l$SONAME
 EOT
 }
 
@@ -373,7 +373,15 @@ case "$1" in
 esac
 
 if [ $TYPE = "CLANG" ]; then
-    if [ $# -eq 3 ]; then
+    if [ $# -lt 3 ]; then
+        printf ""
+        printf "USAGE:"
+        printf ""
+        printf "\t codegen.sh c project_name file_name\n"
+        printf "\t or...\n"
+        printf "\t codegen.sh c project_name file_name so_name\n"
+        exit
+    elif [ $# -eq 3 ]; then
         PROJECT=$2
         FILE=$3
         if [ ! -e $PROJECT ]; then
@@ -400,7 +408,7 @@ if [ $TYPE = "CLANG" ]; then
             mkdir $PROJECT
         fi
         if [ ! -e $PROJECT/Makefile ]; then
-            create_c_makefile $PROJECT > $PROJECT/Makefile
+            create_lib_c_makefile $PROJECT > $PROJECT/Makefile
         fi
         if [ ! -e $PROJECT/$FILE.h ]; then
             create_c_h $FILE > $PROJECT/$FILE.h
